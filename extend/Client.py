@@ -426,7 +426,6 @@ class Client:
             # Process only if the session ID is the same
             if self.sessionId == session:
                 if int(lines[0].split(' ')[1]) == 200:
-                    print(self.requestSent)
                     if self.requestSent == self.SETUP:
                         # -------------
                         # TO COMPLETE
