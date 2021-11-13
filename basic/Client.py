@@ -3,14 +3,9 @@ import tkinter.messagebox as tkMessageBox
 from PIL import Image, ImageTk
 import socket
 import threading
-import sys
-import traceback
-import os
+import io
 
 from RtpPacket import RtpPacket
-
-CACHE_FILE_NAME = "cache-"
-CACHE_FILE_EXT = ".jpg"
 
 
 class Client:
@@ -82,8 +77,6 @@ class Client:
         """Teardown button handler."""
         self.sendRtspRequest(self.TEARDOWN)
         self.master.destroy()  # Close the gui window
-        # Delete the cache image from video
-        os.remove(CACHE_FILE_NAME + str(self.sessionId) + CACHE_FILE_EXT)
 
     def pauseMovie(self):
         """Pause button handler."""
@@ -108,13 +101,12 @@ class Client:
                     rtpPacket = RtpPacket()
                     rtpPacket.decode(data)
 
-                    currFrameNbr = rtpPacket.seqNum()
-                    print("Current Seq Num: " + str(currFrameNbr))
+                    curFrameNbr = rtpPacket.seqNum()
+                    print("Current Seq Num: " + str(curFrameNbr))
 
-                    if currFrameNbr > self.frameNbr:  # Discard the late packet
-                        self.frameNbr = currFrameNbr
-                        self.updateMovie(self.writeFrame(
-                            rtpPacket.getPayload()))
+                    if curFrameNbr > self.frameNbr:  # Discard the late packet
+                        self.frameNbr = curFrameNbr
+                        self.updateMovie(rtpPacket.getPayload())
             except:
                 # Stop listening upon requesting PAUSE or TEARDOWN
                 if self.playEvent.isSet():
@@ -127,18 +119,10 @@ class Client:
                     self.rtpSocket.close()
                     break
 
-    def writeFrame(self, data):
-        """Write the received frame to a temp image file. Return the image file."""
-        cachename = CACHE_FILE_NAME + str(self.sessionId) + CACHE_FILE_EXT
-        file = open(cachename, "wb")
-        file.write(data)
-        file.close()
-
-        return cachename
-
-    def updateMovie(self, imageFile):
+    def updateMovie(self, image_data):
         """Update the image file as video frame in the GUI."""
-        photo = ImageTk.PhotoImage(Image.open(imageFile))
+        image = Image.open(io.BytesIO(image_data))
+        photo = ImageTk.PhotoImage(image)
         self.label.configure(image=photo, height=288)
         self.label.image = photo
 
