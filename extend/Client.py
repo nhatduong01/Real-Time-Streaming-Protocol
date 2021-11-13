@@ -46,7 +46,7 @@ class Client:
         self.teardownAcked = 0
         self.connectToServer()
         self.frameNbr = 0
-        self.isExiting = False
+        self.rtpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # Extend 1
         self.totalBytes = 0
         self.lostNum = 0
@@ -60,7 +60,6 @@ class Client:
         self.duration = 0
         self.predict = 1
         self.isBackward = 0
-        self.rtpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def createWidgets(self):
         """Build GUI."""
